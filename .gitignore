@@ -1,0 +1,16 @@
+
+venv/
+.env/
+.env.bak/
+.env.old/
+
+
+__pycache__/
+*.pyc
+
+
+.vscode/
+.idea/
+
+
+.DS_Store

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CloudVault</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="container wide" id="mainContainer">
+
+        <div class="header">
+            <div class="logo">☁️CloudVault</div>
+            <div class="tagline">Your files, anywhere, anytime</div>
+        </div>
+
+        <div class="content">
+            <div class="page active">
+
+                <div class="dashboard-header">
+                    <h2>My Files</h2>
+                    <div class="user-info">
+                        <div class="user-avatar">--</div>
+                        <span>Guest</span>
+                    </div>
+                </div>
+
+                <form action="{{ url_for('upload_file') }}" method="POST" enctype="multipart/form-data" style="margin: 20px 0;">
+                    <input type="file" name="file" required>
+                    <button type="submit" class="btn">Upload</button>
+                </form>
+
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number">{{ total_files }}</div>
+                        <div class="stat-label">Total Files</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-number">{{ total_size }} MB</div>
+                        <div class="stat-label">Total Size</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-number">50 GB</div>
+                        <div class="stat-label">Storage Limit</div>
+                    </div>
+                </div>
+
+                <div class="file-list">
+                    {% if files %}
+                    <table style="width:100%; border-collapse: collapse; margin-top:20px;">
+                        <tr style="background:#eee;">
+                            <th style="padding:10px; border:1px solid #ccc;">Filename</th>
+                            <th style="padding:10px; border:1px solid #ccc;">Size</th>
+                            <th style="padding:10px; border:1px solid #ccc;">Uploaded</th>
+                            <th style="padding:10px; border:1px solid #ccc;">Action</th>
+                        </tr>
+
+                        {% for file in files %}
+                        <tr>
+                            <td>{{ file[1] }}</td>
+                            <td>{{ (file[2] / (1024*1024)) | round(2) }} MB</td>
+                            <td>{{ file[3] }}</td>
+                            <td>
+                                <a href="{{ url_for('download_file', file_id=file[0]) }}" class="btn">Download</a>
+
+                                <form action="{{ url_for('delete_file', file_id=file[0]) }}" method="POST" style="display:inline;">
+                                    <button type="submit" class="btn" style="background:red; color:white;">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                    {% else %}
+                    <p style="text-align: center; color: #999;">No files uploaded yet</p>
+                    {% endif %}
+                </div>
+
+                <div class="nav-buttons">
+                    <a href="{{ url_for('profile') }}" class="btn btn-secondary">Profile</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-secondary">Logout</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</body>
+</html>
