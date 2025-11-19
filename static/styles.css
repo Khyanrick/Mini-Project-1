@@ -6,7 +6,7 @@
 
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(135deg, #020b33 0%, #9739f5 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -460,4 +460,27 @@ input[type="file"]::file-selector-button:hover {
 .file-list table td form {
     display: inline;
     margin: 0;
+}
+
+/* Mobile responsive - scrollable table */
+@media (max-width: 768px) {
+    .file-list {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .file-list table {
+        min-width: 600px;
+    }
+    
+    .stats {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .dashboard-header {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
 }
