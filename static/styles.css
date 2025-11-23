@@ -484,3 +484,14 @@ input[type="file"]::file-selector-button:hover {
         text-align: center;
     }
 }
+
+/* error box */
+.error-box {
+    background-color: #ffdddd;
+    color: #a30000;
+    padding: 12px 15px;
+
+    margin-bottom: 15px;
+    border-radius: 6px;
+    font-size: 16px;
+}

@@ -22,7 +22,7 @@
                     <h2>My Files</h2>
                     <div class="user-info">
                         <div class="user-avatar">--</div>
-                        <span>Guest</span>
+                        <span>{{ username }}</span>
                     </div>
                 </div>
 
@@ -81,7 +81,7 @@
 
                 <div class="nav-buttons">
                     <a href="{{ url_for('profile') }}" class="btn btn-secondary">Profile</a>
-                    <a href="{{ url_for('login') }}" class="btn btn-secondary">Logout</a>
+                    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
                 </div>
 
             </div>

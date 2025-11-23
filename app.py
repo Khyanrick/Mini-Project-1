@@ -1,16 +1,22 @@
-from flask import Flask, render_template, redirect, request, send_file
+from flask import Flask, render_template, redirect, request, send_file, session
 from db import fetch_query, execute_query, display_stats
 import os
+from login_config import ALLOWED_USERS, SECRET_KEY, SHARED_PASSWORD_HASH
+from werkzeug.security import check_password_hash
 
 app = Flask(__name__)
+app.secret_key = SECRET_KEY
 BASE_FOLDER = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_FOLDER, "uploads")
 
 
-@app.route('/')
+@app.route('/dashboard')
 def home():
+    username = session.get('username')
+    if username  not in ALLOWED_USERS:
+        return redirect('/')
     files, total_files, total_size = display_stats()
-    return render_template('dashboard.html', files=files, total_files=total_files, total_size=total_size)
+    return render_template('dashboard.html', files=files, total_files=total_files, total_size=total_size, username=session.get('username'))
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
@@ -20,7 +26,7 @@ def upload_file():
     file.save(filepath)
     execute_query("INSERT INTO files(file_name, file_path, file_size)VALUES(%s,%s,%s)",
                   (file.filename, filepath, os.path.getsize(filepath)))
-    return redirect('/')
+    return redirect('/dashboard')
 
 @app.route('/download/<int:file_id>')
 def download_file(file_id):
@@ -47,13 +53,30 @@ def delete_file(file_id):
         return render_template('dashboard.html', files=files, total_files=total_files, total_size=total_size)
     os.remove(file_path)
     execute_query("DELETE FROM files WHERE file_id= %s;", (file_id,))
-    return redirect('/')
+    return redirect('/dashboard')
 
 #level 2
-@app.route('/login')
+@app.route('/', methods= ['POST', 'GET'])
 def login():
-    return render_template('login.html')
-
+    if request.method == "GET":
+        return render_template('login.html')
+    elif request.method == "POST":
+        username= request.form.get('username')
+        password= request.form.get('password')
+        if username not in ALLOWED_USERS:
+            return render_template('login.html', error="invalid username!")
+        elif check_password_hash(SHARED_PASSWORD_HASH, password):
+            session['username'] = username
+            return redirect('/dashboard')
+        else:
+            return render_template('login.html', error="invalid KEY!")
+        
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect('/')    
+    
+#level 3 (before make sure two same username cannot be logged in at the same time)
 @app.route('/profile')
 def profile():
     return render_template('profile.html')
@@ -63,4 +86,4 @@ def register():
     return render_template('register.html')
 
 if __name__ == '__main__':
-    app.run(host="localhost", port=None, debug=True)
+    app.run(host="localhost", port=8000, debug=True)
