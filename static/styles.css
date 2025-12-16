@@ -364,6 +364,7 @@ input[type="file"]::file-selector-button:hover {
 .nav-buttons {
     display: flex;
     gap: 10px;
+    justify-content: center;
 }
 
 .nav-buttons button {

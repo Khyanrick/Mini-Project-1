@@ -24,8 +24,8 @@ def upload_file():
     os.makedirs(UPLOAD_FOLDER, exist_ok=True)
     filepath = os.path.join(UPLOAD_FOLDER, file.filename)
     file.save(filepath)
-    execute_query("INSERT INTO files(file_name, file_path, file_size)VALUES(%s,%s,%s)",
-                  (file.filename, filepath, os.path.getsize(filepath)))
+    execute_query("INSERT INTO files(file_name, file_path, file_size, uploaded_by)VALUES(%s,%s,%s,%s)",
+                  (file.filename, filepath, os.path.getsize(filepath),(session.get('username'))))
     return redirect('/dashboard')
 
 @app.route('/download/<int:file_id>')
@@ -75,15 +75,7 @@ def login():
 def logout():
     session.clear()
     return redirect('/')    
-    
-#level 3 (before make sure two same username cannot be logged in at the same time)
-@app.route('/profile')
-def profile():
-    return render_template('profile.html')
 
-@app.route('/register')
-def register():
-    return render_template('register.html')
 
 if __name__ == '__main__':
     app.run(host="localhost", port=8000, debug=True)

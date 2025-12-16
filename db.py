@@ -26,7 +26,7 @@ def execute_query(query, params=None):
     conn.close()
 
 def display_stats():
-    files = fetch_query("SELECT file_id, file_name, file_size, upload_date FROM files ORDER BY upload_date DESC;")
+    files = fetch_query("SELECT file_id, file_name, file_size, upload_date, uploaded_by FROM files ORDER BY upload_date DESC;")
     total_files = len(files)
     total_size = sum(f[2] for f in files) // (1024*1024)
     return files , total_files , total_size

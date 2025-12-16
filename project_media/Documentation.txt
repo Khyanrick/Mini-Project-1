@@ -1,0 +1,286 @@
+# CloudVault – Mini Google Drive Server
+
+## 1. Project Overview
+
+CloudVault is a **self-hosted web-based file storage system** inspired by Google Drive. It allows authenticated users to upload, download, and delete files through a browser interface. The system is intentionally simple and designed as a **learning-focused backend + web project**, emphasizing:
+
+* Session-based authentication
+* File–database synchronization
+* Server-side access control
+* Clean separation of frontend, backend, and database layers
+
+This project runs on a **local server** and stores files on disk while tracking metadata in a PostgreSQL database.
+
+---
+
+## 2. Tech Stack
+
+| Layer        | Technology                     |
+| ------------ | ------------------------------ |
+| Backend      | Python (Flask)                 |
+| Frontend     | HTML + Jinja2 Templates + CSS  |
+| Database     | PostgreSQL                     |
+| Auth         | Flask Sessions + Password Hash |
+| Storage      | Local filesystem (`/uploads`)  |
+| DB Bootstrap | PHP (one-time schema creation) |
+
+---
+
+## 3. High-Level Architecture
+
+```
+Browser
+   |
+   | HTTP (GET/POST)
+   v
+Flask App (Python)
+   |
+   | SQL Queries
+   v
+PostgreSQL Database  <---- PHP (schema init, one-time)
+   |
+   | File paths
+   v
+Local File System (/uploads)
+```
+
+---
+
+## 4. Authentication & Session Model
+
+### Authentication Design
+
+* Users are authenticated via:
+
+  * A **username whitelist** (`ALLOWED_USERS`)
+  * A **shared secret key** (hashed password)
+* There is **no per-user password** system
+* All valid users share the same secret key
+
+### Session Flow
+
+1. User submits username + key on `/`
+2. Flask verifies:
+
+   * Username exists in whitelist
+   * Password matches stored hash
+3. On success:
+
+   * `session['username']` is set
+4. All protected routes validate session state
+
+### Logout
+
+* `/logout` clears the session and redirects to login
+
+---
+
+## 5. Backend Routes (Flask)
+
+| Route            | Method | Purpose                |
+| ---------------- | ------ | ---------------------- |
+| `/`              | GET    | Render login page      |
+| `/`              | POST   | Authenticate user      |
+| `/dashboard`     | GET    | Display file dashboard |
+| `/upload`        | POST   | Upload new file        |
+| `/download/<id>` | GET    | Download file          |
+| `/delete/<id>`   | POST   | Delete file            |
+| `/logout`        | GET    | End session            |
+
+---
+
+## 6. File Upload Lifecycle
+
+### Upload
+
+1. User selects file on dashboard
+2. Browser sends `multipart/form-data` POST request
+3. Flask:
+
+   * Saves file to `/uploads`
+   * Extracts file size
+   * Inserts metadata into database
+
+### Database Entry
+
+Each uploaded file creates a record containing:
+
+* File name
+* Absolute file path
+* File size (bytes)
+* Upload timestamp
+* Uploaded by (username)
+
+---
+
+## 7. File Download Flow
+
+1. User clicks **Download**
+2. Flask queries DB using `file_id`
+3. If file exists on disk:
+
+   * File is streamed as an attachment
+4. If missing:
+
+   * Dashboard reloads safely
+
+---
+
+## 8. File Deletion Flow
+
+1. User clicks **Delete**
+2. POST request sent to `/delete/<file_id>`
+3. Backend:
+
+   * Validates DB entry
+   * Deletes file from disk
+   * Removes DB record
+4. Redirects back to dashboard
+
+---
+
+## 9. Database Schema (PostgreSQL)
+
+```sql
+CREATE TABLE files (
+    file_id SERIAL PRIMARY KEY,
+    file_name VARCHAR(255) NOT NULL,
+    file_path TEXT NOT NULL,
+    file_size BIGINT,
+    file_type VARCHAR(100),
+    upload_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    uploaded_by VARCHAR(100)
+);
+```
+
+### Notes
+
+* `file_type` is currently unused
+* File ownership is informational only
+
+---
+
+## 10. Frontend Templates
+
+### Login Page (`login.html`)
+
+* Username input
+* Shared key input
+* Displays server-side error messages
+
+### Dashboard (`dashboard.html`)
+
+* Upload form
+* File listing table
+* Download and delete actions
+* Storage statistics display
+
+---
+
+## 11. Access Control Model (Important)
+
+| Capability          | Allowed?                 |
+| ------------------- | ------------------------ |
+| Upload files        | Yes (any logged-in user) |
+| View all files      | Yes                      |
+| Delete any file     | Yes                      |
+| User file isolation | No                       |
+
+This is a **shared drive model**, not per-user private storage.
+
+---
+
+## 12. Security Considerations (Honest Analysis)
+
+### Implemented
+
+* Password hashing
+* Session-based authentication
+* Whitelisted usernames
+
+### Missing / Weak
+
+* No CSRF protection
+* No file type validation
+* No per-user access control
+* No rate limiting
+* No HTTPS
+
+This system is **safe for local / academic use**, not production.
+
+---
+
+## 13. Project Structure
+
+```
+cloudvault/
+├── app.py
+├── db.py
+├── login_config.py
+├── uploads/
+├── templates/
+│   ├── login.html
+│   └── dashboard.html
+├── static/
+│   └── styles.css
+└── php/
+    └── init_db.php
+```
+
+---
+
+## 14. How to Run
+
+1. Create PostgreSQL database
+2. Run PHP script once to create tables
+3. Configure `login_config.py`
+4. Install Python dependencies
+5. Run Flask app
+6. Open `http://localhost:8000`
+
+---
+
+## 15. Limitations
+
+* Single shared password
+* No cloud sync
+* Local storage only
+* No versioning
+
+---
+
+## 16. Future Improvements
+
+* Per-user storage isolation
+* File preview support
+* Role-based access control
+* REST API
+* HTTPS + reverse proxy
+
+---
+
+## 17. Educational Value
+
+This project demonstrates:
+
+* Real backend–frontend integration
+* Database-backed file management
+* Session-based authentication
+* Practical Flask architecture
+
+Ideal as a **systems + web engineering learning project**.
+
+
+DOCUMENTATION:
++-------------------------------+
+|            FILES              |
++-------------------------------+
+| PK  file_id       : SERIAL    |
+|     file_name     : VARCHAR   |
+|     file_path     : TEXT      |
+|     file_size     : BIGINT    |
+|     file_type     : VARCHAR   |
+|     upload_date   : TIMESTAMP |
+|     uploaded_by   : VARCHAR   |
++-------------------------------+
+

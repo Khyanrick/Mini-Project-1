@@ -56,6 +56,7 @@
                             <th style="padding:10px; border:1px solid #ccc;">Size</th>
                             <th style="padding:10px; border:1px solid #ccc;">Uploaded</th>
                             <th style="padding:10px; border:1px solid #ccc;">Action</th>
+                            <th style="padding:10px; border:1px solid #ccc;">Uploaded by</th>
                         </tr>
 
                         {% for file in files %}
@@ -71,6 +72,7 @@
                                 </form>
 
                             </td>
+                             <td>{{ file[4] }}</td>
                         </tr>
                         {% endfor %}
                     </table>
@@ -80,7 +82,6 @@
                 </div>
 
                 <div class="nav-buttons">
-                    <a href="{{ url_for('profile') }}" class="btn btn-secondary">Profile</a>
                     <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
                 </div>
 
